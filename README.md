@@ -8,7 +8,7 @@ The following sections describe the protocol spec, deliverable, submission and a
 
 ### Peer-to-peer protocol and deliverable ###
 
-In the peer-to-peer approach, the client must first obtain the *torrent metadata* from the torrent server (a.k.a *tracker*) and use this metadata to download data blocks. The torrent metadata contains information about the number and size of blocks constituting the file and peers (`<IP,port>` tuples) from which the blocks may be downloaded.
+In the peer-to-peer approach, the client must first obtain the *torrent metadata* from the torrent server (a.k.a *tracker*) and use this metadata to download data blocks. The torrent metadata contains information about the number and size of blocks constituting the file and peers (`<IP,port>` tuples) from which those blocks may be downloaded.
 
 
 ## Torrent metadata ##
