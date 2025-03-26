@@ -73,7 +73,7 @@ To enable the peer-to-peer mode, you need to set the `-t` command-line option wh
 
 **Deliverable**: Your client must implement the torrent metadata protocol over a UDP socket to the torrent server's `<IP,port>` specified as a command-line argument, learn `<IP,port>` peer tuples from the torrent server, retrieve all the blocks of `filename` specified as a command-line argument (refer Submission Instructions), store the retrieved body in a local file of the same name in the current directory, and then exit gracefully after closing all sockets.
 
-Speed is of essence in the peer-to-peer approach, so your client must implement a strategy to download the file as fast as possible. The server ports on the peer-to-peer server are intentionally rate-limited to send data slower compared to the client-server server, so you will need to use the peer-to-peer approach to download the file in a reasonable amount of time.
+Speed is of essence in the peer-to-peer approach, so your client must implement a strategy to download the file as fast as possible. The  ports on the peer-to-peer server are intentionally rate-limited to send data slower compared to the client-server server, so you will need to use the peer-to-peer approach to download the file in a reasonable amount of time.
 
 # Submission Instructions #
 
@@ -96,18 +96,18 @@ This assignment is gameified, so there will be a leaderboard on Gradescope showi
 
 5. **Find good friends and keep 'em**: The total number of open connections your client can use (across all peer ports) will be limited to a small number based on your client's IP address, so be careful about remembering to close idle connections because if you try to open more connections than the limit, they will get immediately closed, and furthermore, the system will automatically close connections that have been idle for over a minute, so forgetting to close connections in the long past doesn't haunt you.
 
-6. The peer-to-peer server has been intentionally rate-limited to slow down transfer rates compared to the client-server server so that your peer-to-peer client can leverage other peers to speed it up; in particular, your client-server client using the default 18765 port will be much slower now.
-
 7. Reminders: 
-	1. Reminder: TCP != UDP. All data transfer uses TCP, but the torrent metadata tracker uses UDP, so you can not make a TCP connection to or telnet to a UDP server, however you can use `UDPTelnet.java` from the provided “hello world” examples or a command-line tool like `nc` to manually (non-programmatically) “speak” the torrent server protocol on a console just for checking that it works as described.
+	1. The peer-to-peer server has been intentionally rate-limited to slow down transfer rates compared to the client-server server so that your peer-to-peer client can leverage other peers to speed it up; in particular, your client-server client using the default 18765 port will be much slower now.
 	
-	2. Reminder: You are strongly encouraged to explore and use any convenient methods supported by the Java/Python/your-favorite-language's socket API, but make sure to remember tip #3 from the client-server assignment.
+	2. Reminder: TCP != UDP. All data transfer uses TCP, but the torrent metadata tracker uses UDP, so you can not make a TCP connection to or telnet to a UDP server, however you can use `UDPTelnet.java` from the provided “hello world” examples or a command-line tool like `nc` to manually (non-programmatically) “speak” the torrent server protocol on a console just for checking that it works as described.
 	
-	3. Reminder: Blocks are numbered starting from 0, and block offsets (the position of the first byte of the block in the file) start from 0.
+	3. Reminder: You are strongly encouraged to explore and use any convenient methods supported by the Java/Python/your-favorite-language's socket API, but make sure to remember tip #3 from the client-server assignment.
 	
-	4. Reminder: The UDP torrent metadata server is rate-limited, so not every request may receive a response (which goes without saying with UDP in general anyway).
+	4. Reminder: Blocks are numbered starting from 0, and block offsets (the position of the first byte of the block in the file) start from 0.
 	
-	5. Reminder: The data block peer servers are rate-limited, so data may trickle in at its own sweet pace (which goes without saying for a TCP bytestream in general anyway). 
+	5. Reminder: The UDP torrent metadata server is rate-limited, so not every request may receive a response (which goes without saying with UDP in general anyway).
+	
+	6. Reminder: The data block peer servers are rate-limited, so data may trickle in at its own sweet pace (which goes without saying for a TCP bytestream in general anyway). 
 	
 8. You have another utility command called `GETHDR` available to just get the header, which sends only the header, not the body, and has been provided to quickly check that the server ports are up and running as expected. (Your client does not need to use this command.)
 
