@@ -94,7 +94,7 @@ This assignment is gameified, so there will be a leaderboard on Gradescope showi
 
 4. **Anything that can go wrong will**: Your connections will get closed if you send bad commands, and at random times, your connection may also get closed for no good reason, just like in real-world swarms, as the server periodically randomizes the peer-to-peer ports, so your code should be resilient to unexpected failures.
 
-5. **Find good friends and keep 'em**: The total number of open connections your client can use (across all peer ports) will be limited to a small number based on your IP address, so be careful about remembering to close idle connections because if you try to open more connections than the limit, they will get immediately closed, and furthermore, the system will automatically close connections that have been idle for over a minute, so forgetting to close connections in the long past doesn't haunt you.
+5. **Find good friends and keep 'em**: The total number of open connections your client can use (across all peer ports) will be limited to a small number based on your client's IP address, so be careful about remembering to close idle connections because if you try to open more connections than the limit, they will get immediately closed, and furthermore, the system will automatically close connections that have been idle for over a minute, so forgetting to close connections in the long past doesn't haunt you.
 
 6. The peer-to-peer server has been intentionally rate-limited to slow down transfer rates compared to the client-server server so that your peer-to-peer client can leverage other peers to speed it up; in particular, your client-server client using the default 18765 port will be much slower now.
 
