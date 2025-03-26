@@ -20,7 +20,7 @@ In the peer-to-peer approach, the client must first obtain the *torrent metadata
 ```
 Thus, to request the torrent metadata for `redsox.jpg`, the client must send a UDP message containing the string `GET redsox.jpg.torrent` (with or without a newline at the end) to the torrent server.
 
-This UDP-based torrent server is running at `<date.cs.umass.edu, 19876>`. Just like in Part A, we strongly encourage you to run your own server on your local machine.
+This UDP-based torrent server runs on port 19876. 
 
 **Torrent metadata response format**: The response to the request for torrent metadata is in the following format:
 
