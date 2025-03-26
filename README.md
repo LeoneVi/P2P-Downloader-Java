@@ -33,7 +33,7 @@ This UDP-based torrent server runs on port 19876.
 	PORT2: 4321
 ```
 
-The names of the fields above are self-explanatory. `NUM_BLOCKS` is the number of blocks in the requested file. `FILE_SIZE` is the size of the entire file in bytes. `IP1` and `PORT1` identify the IP address and port number of the first peer, and `IP2` and `PORT2` the second peer.
+The names of the fields above are self-explanatory. `NUM_BLOCKS` is the number of blocks in the requested file. `FILE_SIZE` is the size of the entire file in bytes. `IP1` and `PORT1` identify the IP address and port number of the first peer, and `IP2` and `PORT2` the second peer. Newline characters are visually implicit in the example above and not shown explicitly.
 
 Each response will contain two randomly chosen valid peer identifiers. You can query the tracker multiple times to get more peer identifiers. However, the tracker is designed to rate-limit the queries, so you may not get responses promptly if you send requests too fast or may not get responses at all as UDP messages can get lost.
 
