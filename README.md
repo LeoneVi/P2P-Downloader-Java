@@ -55,7 +55,7 @@ Specifying `*’ instead of a block number returns a randomly chosen block
 	GET filename:*\n
 ```
 
-**Block response format**: The response to a block request has the following format as that of the whole body. The only difference is that the starting byte offset in the file in general will be non-zero and the size of the block will be much smaller than the size of the file, for example:
+**Block response format**: The response to a block request has the following format as that of the whole file. The only difference is that the starting byte offset in the file in general will be non-zero and the size of the block will be much smaller than the size of the file, for example:
 
 ```
 	200 OK
@@ -80,6 +80,8 @@ Speed is of essence in the peer-to-peer approach, so your client must implement 
 Same as those for the [client-server approach](https://bitbucket.org/compnetworks/cs-downloader/src/master/README.md#markdown-header-submission-instructions) with one important difference: your client should be named P2PDownloader.ext where `.ext` is the extension as appropriate for your programming language.
 
 Standard autograder disclaimers as before apply.
+
+This assignment is gameified, so there will be a leaderboard on Gradescope showing how fast your client is relative to your classmates, so bring in your competitive A game!
 
 # Tips, FAQs, etc.#
 
