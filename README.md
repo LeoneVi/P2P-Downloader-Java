@@ -47,7 +47,7 @@ Having obtained metadata information using UDP as above, data blocks must be req
 	GET filename:<block_number>\n
 ```
 
-where block_number is an integer identifying the block in filename. For example, you may request block 24 in redsox.jpg by sending the string `GET Redsox.jpg:24\n` to any one of the peers received in the torrent metadata above. Note that the servers listed in the client/server option also act as peers and support the above request format to request specific blocks.
+where block_number is an integer identifying the block in filename with count starting from 0. For example, you may request the 25th block, block 24, in redsox.jpg by sending the string `GET Redsox.jpg:24\n` to any one of the peers received in the torrent metadata above. Note that the servers listed in the client/server option also act as peers and support the above request format to request specific blocks.
 
 Specifying `*’ instead of a block number returns a randomly chosen block
 
