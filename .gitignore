@@ -40,13 +40,15 @@ Thumbs.db
 *.exe
 *.war
 
-# Large media files
+# media files
 *.mp4
 *.tiff
 *.avi
 *.flv
 *.mov
 *.wmv
+*.jpg
+*.png
 
 # course given readme
 /README.md
