@@ -2,15 +2,14 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class P2PDownloader {
     static class TorrentInfo {
         int numBlocks;
         int fileSize;
-        String ip1;
-        Integer port1;
-        String ip2;
-        Integer port2;
+        InetSocketAddress peer1;
+        InetSocketAddress peer2;
 
     }
     /**
@@ -29,7 +28,7 @@ public class P2PDownloader {
 
         System.out.println("Creating socket...");
         DatagramSocket torrentServer = new DatagramSocket();
-        torrentServer.setSoTimeout(5000); // 5-second timeout
+        torrentServer.setSoTimeout(2000); // 2-second timeout
 
         // format request
         String request = "GET " + fileName + ".torrent\n";
@@ -73,7 +72,12 @@ public class P2PDownloader {
         System.out.println("Received (" + response.getLength() + " bytes):\n" + responseStr);
 
         // parse response into TorrentInfo
+        String ip1 = null;
+        int port1 = -1;
+        String ip2 = null;
+        int port2 = -1;
         TorrentInfo info = new TorrentInfo();
+        String[] lines = responseStr.split("\n");
         for (String line : responseStr.split("\n")) {
             line = line.trim();
             if (line.equals("400 BAD_FORMAT"))
@@ -83,14 +87,18 @@ public class P2PDownloader {
             else if (line.startsWith("FILE_SIZE:"))
                 info.fileSize = Integer.parseInt(line.split(":")[1].trim());
             else if (line.startsWith("IP1:"))
-                info.ip1 = line.split(":")[1].trim();
+                ip1 = line.split(":")[1].trim();
             else if (line.startsWith("PORT1:"))
-                info.port1 = Integer.parseInt(line.split(":")[1].trim());
+                port1 = Integer.parseInt(line.split(":")[1].trim());
             else if (line.startsWith("IP2:"))
-                info.ip2 = line.split(":")[1].trim();
+                ip2 = line.split(":")[1].trim();
             else if (line.startsWith("PORT2:"))
-                info.port2 = Integer.parseInt(line.split(":")[1].trim());
+                port2 = Integer.parseInt(line.split(":")[1].trim());
         }
+
+        if(ip1 != null && port1 != -1) info.peer1 = new InetSocketAddress(ip1, port1);
+        if(ip2 != null && port2 != -1) info.peer2 = new InetSocketAddress(ip2, port2);
+
         return info;
 
     }
@@ -100,9 +108,9 @@ public class P2PDownloader {
      * @param peer peer to download file from
      * @param fileName name of file to fetch
      * @param blockNumber block index to fetch
-     * @return true if the block was successfully downloaded, false otherwise
+     * @return returns byteLength, or 0 if download failed
      */
-    static boolean downloadDataBlocks(InetSocketAddress peer, String fileName, int blockNumber) throws IOException {
+    static int downloadDataBlocks(InetSocketAddress peer, String fileName, int blockNumber) throws IOException {
         Socket clientSocket = new Socket();
         clientSocket.connect(peer);
         InputStream inFromServer = clientSocket.getInputStream();
@@ -127,10 +135,11 @@ public class P2PDownloader {
         String header = headerBuffer.toString();
         String[] lines = header.split("\n");
 
+        if(lines.length < 3) return 0; // response should have min of 3 lines
         String statusLine = lines[0];
+        if(!statusLine.equals("200 OK")) return 0;
         int byteOffset = Integer.parseInt(lines[1].split(":")[1].trim());
         int byteLength = Integer.parseInt(lines[2].split(":")[1].trim());
-        if(!statusLine.equals("200 OK")) return false;
 
         byte[] fileData = new byte[byteLength];
         int totalRead = 0;
@@ -148,8 +157,53 @@ public class P2PDownloader {
         inFromServer.close();
         clientSocket.close();
 
-        return true;
+        return totalRead;
     }
+    static class PeerDownloadRunnable implements Runnable {
+        private final Queue<Integer> blockQueue;
+        private final AtomicLong downloadedBytes;
+        private final InetSocketAddress peer;
+        private final String fileName;
+
+        public PeerDownloadRunnable
+                (Queue<Integer> givenBlockQueue, AtomicLong givenDownloadedBytes, InetSocketAddress givenPeer, String givenFileName){
+
+            this.blockQueue = givenBlockQueue;
+            this.downloadedBytes = givenDownloadedBytes;
+            this.peer = givenPeer;
+            this.fileName = givenFileName;
+
+        }
+        @Override
+        public void run(){
+            System.out.println("Thread starting!");
+            boolean workToBeDone = true;
+            while(workToBeDone){
+                Integer block = blockQueue.poll();
+                if(block == null){
+                    workToBeDone = false;
+                    continue;
+                }
+
+                try{
+                    int attempts = 0;
+                    int bytes = 0;
+                    while (attempts < 3 && bytes == 0) {
+                        bytes = downloadDataBlocks(peer, fileName, block);
+                        attempts++;
+                    }
+                    if (bytes == 0) {
+                        blockQueue.add(block);
+                    } else {
+                        downloadedBytes.addAndGet(bytes);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+    public final static int THREAD_COUNT = 2;
     static final String USAGE = "usage: P2PDownloader <tracker_ip> <tracker_port> <filename>";
     public static void main(String[] args) throws IOException {
         if (args.length < 3) {
@@ -163,22 +217,38 @@ public class P2PDownloader {
         System.out.println("Getting torrent metadata...");
 
         TorrentInfo info = getTorrentMetadata(ip, port, fileName);
-        InetSocketAddress peer1 = new InetSocketAddress(info.ip1, info.port1);
-        InetSocketAddress peer2 = new InetSocketAddress(info.ip2, info.port2);
 
         Queue<Integer> blockQueue = new ConcurrentLinkedQueue<>();
         for(int i = 0; i < info.numBlocks; i++){
             blockQueue.add(i);
         }
 
-        while(!blockQueue.isEmpty()){
-            if(downloadDataBlocks(peer1, fileName, blockQueue.element())){
-                System.out.println("Downloaded data from peer 1");
-                blockQueue.remove();
+        AtomicLong downloadedBytes = new AtomicLong(0);
+
+        for(int i = 0; i < THREAD_COUNT; i++){
+            TorrentInfo infoForThread = getTorrentMetadata(ip, port, fileName);
+            Thread thread1 = new Thread(new PeerDownloadRunnable(blockQueue, downloadedBytes, infoForThread.peer1, fileName));
+            Thread thread2 = new Thread(new PeerDownloadRunnable(blockQueue, downloadedBytes, infoForThread.peer2, fileName));
+            thread1.start();
+            thread2.start();
+            // Wait 1 seconds to not overload UDP server
+            try {
+                Thread.sleep(1000); // 1 second
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
             }
-            if(!blockQueue.isEmpty() && downloadDataBlocks(peer2, fileName, blockQueue.element())){
-                System.out.println("Downloaded data from peer 2");
-                blockQueue.remove();
+        }
+
+        System.out.println("Downloading " + fileName + "...");
+        while(downloadedBytes.get() < info.fileSize){
+            int percent = (int)Math.round((downloadedBytes.get() * 100.0) / info.fileSize);
+            System.out.println(percent + "%");
+            try {
+                Thread.sleep(1000); // 1 second
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
