@@ -10,7 +10,6 @@ public class P2PDownloader {
         int fileSize;
         InetSocketAddress peer1;
         InetSocketAddress peer2;
-
     }
     /**
      * Establishes a UDP connection to download torrent information
@@ -243,7 +242,7 @@ public class P2PDownloader {
         System.out.println("Downloading " + fileName + "...");
         while(downloadedBytes.get() < info.fileSize){
             int percent = (int)Math.round((downloadedBytes.get() * 100.0) / info.fileSize);
-            System.out.println(percent + "%");
+            System.out.println("Completed " + percent + "% of the download");
             try {
                 Thread.sleep(1000); // 1 second
             } catch (InterruptedException e) {
@@ -251,5 +250,6 @@ public class P2PDownloader {
                 break;
             }
         }
+        System.out.println("Download complete");
     }
 }
